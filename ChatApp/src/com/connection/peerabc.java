@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;;
 
-public class AllPeers{
+public class peerabc{
 	
 	public static CommonServer cs;
     private static Socket socket;
@@ -28,36 +28,29 @@ public class AllPeers{
 	            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	            out = new PrintWriter(socket.getOutputStream(), true);
 
-	          
+	            // Start a thread to handle incoming messages
+	            new Thread(() -> {
+	                try {
+	                    String message;
+	                    while ((message = in.readLine()) != null) {
+	                        System.out.println("Friend: " + message);
+	                    }
+	                } catch (IOException e) {
+	                    System.err.println("Error reading from friend.");
+	                    e.printStackTrace();
+	                }
+	            }).start();
+
+	            // Handle sending messages from the client
+	            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+	            String input;
+	            while ((input = consoleInput.readLine()) != null) {
+	                out.println(input);
+	            }
 	        } catch (IOException e) {
 	            System.err.println("Error connecting to friend.");
 	            e.printStackTrace();
 	        }
-	        
-	        // Start a thread to handle incoming messages
-            new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println("Friend: " + message);
-                    }
-                } catch (IOException e) {
-//                    System.err.println("Error reading from friend.");
-                    e.printStackTrace();
-                }
-            }).start();
-
-            // Handle sending messages from the client
-            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-            String input;
-            try {
-				while ((input = consoleInput.readLine()) != null) {
-				    out.println(input);
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	 }
 	    
 	 public static void main(String[] args) {
