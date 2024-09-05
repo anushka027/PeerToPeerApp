@@ -64,8 +64,8 @@ public class CommonServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            removeClient(clientSocket);
+        }finally {
+        	removeClient(clientSocket);
         }
     }
 
