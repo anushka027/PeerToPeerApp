@@ -11,14 +11,15 @@ import java.util.Iterator;
 
 public class CommonServer {
 	
-	public ServerSocket server;
-	public Socket ServerSoc;
+	private static ServerSocket server;
+	private Socket ServerSoc;
 	ArrayList<String> AllClient;
 	
 	public CommonServer(int port) {
 		try {
-			server = new ServerSocket(port);
+			server = new ServerSocket(port, 50, InetAddress.getLocalHost());
 			System.out.println("Connection established for port : "+port);
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

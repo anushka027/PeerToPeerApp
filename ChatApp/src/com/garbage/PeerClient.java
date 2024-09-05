@@ -1,4 +1,4 @@
-package com.connection;
+package com.garbage;
 
 import java.io.*;
 import java.net.*;

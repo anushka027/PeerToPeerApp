@@ -1,4 +1,4 @@
-package com.connection;
+package com.garbage;
 
 import java.io.BufferedReader;
 import java.io.IOException;

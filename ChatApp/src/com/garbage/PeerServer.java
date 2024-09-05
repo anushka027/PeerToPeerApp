@@ -1,4 +1,4 @@
-package com.connection;
+package com.garbage;
 
 import java.io.*;
 import java.net.*;
@@ -17,8 +17,7 @@ public class PeerServer {
     public void start() {
         new Thread(() -> {
             try {
-                while (true) {
-                    Socket clientSocket = server.accept();
+                while (true) {                    Socket clientSocket = server.accept();
                     System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
                     new Thread(() -> handleClient(clientSocket)).start();
                 }

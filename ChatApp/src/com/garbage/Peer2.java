@@ -1,4 +1,4 @@
-package com.connection;
+package com.garbage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +12,8 @@ public class Peer2 {
         try (ServerSocket server = new ServerSocket(7890)) {
             System.out.println("Waiting for clients");
 
+            
+            
             try (Socket serverSoc = server.accept();
                  BufferedReader clientInput = new BufferedReader(new InputStreamReader(serverSoc.getInputStream()));
                  BufferedReader peer2Msg = new BufferedReader(new InputStreamReader(System.in));
