@@ -80,8 +80,7 @@ public class AllPeers{
 //		 AllPeers peers = new AllPeers(PortNumber);
 		 cs = new CommonServer(PortNumber);
 		 cs.start();
-		 
-			 ConnectionHandling();
+		 ConnectionHandling();
 	
 	}
 }
