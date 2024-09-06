@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class CommonServer {
     
-    private static ServerSocket server;
+    private ServerSocket server;
     private static final List<Socket> allClients = new ArrayList<>();
     private static final ConcurrentMap<Socket, PrintWriter> clientWriters = new ConcurrentHashMap<>();
 
@@ -23,19 +22,19 @@ public class CommonServer {
         try {
             server = new ServerSocket(port, 50, InetAddress.getLocalHost());
             System.out.println("Server started on port: " + port);
+            start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void start() {
-        new Thread(() -> {
+        Thread request = new Thread(() -> {
             while (true) {
-                try {
-                    // Accept a new client connection
-                    Socket clientSocket = server.accept();
-                    System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
-                    
+                try(// Accept a new client connection
+                    Socket clientSocket = this.server.accept()
+                		) {
+                	System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
                     synchronized (allClients) {
                         allClients.add(clientSocket);
                     }
@@ -52,7 +51,8 @@ public class CommonServer {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        request.start();
     }
 
     private void handleClientMessages(Socket clientSocket, BufferedReader in) {

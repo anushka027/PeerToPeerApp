@@ -13,11 +13,9 @@ public class AllPeers {
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter the IP address of the server");
         String serverIpAddress = sc.next();
-        System.out.println("Enter the port of the server");
-        int port = sc.nextInt();
 
         try {
-            socket = new Socket(serverIpAddress, port);
+            socket = new Socket(serverIpAddress, 5678);
             if (socket.isConnected()) {
                 System.out.println("Connected to: " + serverIpAddress);
             }
@@ -27,25 +25,16 @@ public class AllPeers {
             out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
 
-            // Start a thread to handle incoming messages
-            new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println("Server: " + message);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-
-            while (true) {
-                String messageToSend = consoleInput.readLine();
-                if (messageToSend.equalsIgnoreCase("exit")) {
-                    break;
-                }
-                out.println(messageToSend);
-            }
+            while(true){
+            	String MsgReceived = consoleInput.readLine();
+            	if(MsgReceived == null){
+            	break;
+            	}
+            	 
+            	out.println(MsgReceived);
+            	String MsgSend = in.readLine();
+            	System.out.println("Server: "+MsgSend);
+            	}
 
             socket.close();
             System.out.println("Connection closed");
@@ -62,17 +51,11 @@ public class AllPeers {
         System.out.println("Enter your name");
         String name = sc.next();
 
-        System.out.println("Enter your port");
-        int serverPort = sc.nextInt();
+        int serverPort = 5678;
 
-//        System.out.println("Are you starting the server? (yes/no)");
-//        String answer = sc.next();
-//        if (answer.equalsIgnoreCase("yes")) {
-            CommonServer cs = new CommonServer(serverPort);
-            cs.start();
-//        }
+        CommonServer cs = new CommonServer(serverPort);
+        cs.start();
 
-//        System.out.println("Connecting as client...");
         connectionHandling();
     }
 }
