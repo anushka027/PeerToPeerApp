@@ -1,86 +1,78 @@
 package com.connection;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Scanner;;
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
 
-public class AllPeers{
-	
-	public static CommonServer cs;
+public class AllPeers {
     private static Socket socket;
     private static PrintWriter out;
     private static BufferedReader in;
-	    
-	 public static void ConnectionHandling() {
-		 Scanner sc = new Scanner(System.in);
-	        System.out.println("Enter the IP address of your friend");
-	        String ipAddress = sc.next(); 
-//	        System.out.println("Enter the port you need to connect");
-//	        int port = sc.nextInt();
-	        int port = 5624;
-	        try {
-	            socket = new Socket(ipAddress, port);
-	            System.out.println("Connected to friend at " + ipAddress + " on port " + port);
-	             
-	            // Setup input and output streams
-	            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	            out = new PrintWriter(socket.getOutputStream(), true);
 
-	            // Start a thread to handle incoming messages
-	            Thread ReceiveThread = new Thread(() -> {
-	                try {
-	                    String message;
-	                    while ((message = in.readLine()) != null) {
-	                        System.out.println("Friend: " + message);
-	                    }
-	                } catch (IOException e) {
-	                    System.err.println("Error reading from friend.");
-	                    e.printStackTrace();
-	                }
-	            });
-	            ReceiveThread.start();
+    public static void connectionHandling() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the IP address of the server");
+        String serverIpAddress = sc.next();
+        System.out.println("Enter the port of the server");
+        int port = sc.nextInt();
 
-	            // Handle sending messages from the client
-	            Thread SendThread = new Thread(()->{
-	            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-	            String input;
-	            try {
-					while ((input = consoleInput.readLine()) != null) {
-					    out.println(input);
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-	            }); 
-	            SendThread.start();
-	            
-	            ReceiveThread.join();
-	            SendThread.join();
-	        } catch (IOException | InterruptedException e) {
-	            System.err.println("Error connecting to friend.");
-	            e.printStackTrace();
-	        }
-	 }
-	    
-	 public static void main(String[] args) {
-		 
-//		 int PortNumber = 53;
-		 Scanner sc = new Scanner(System.in);
-		
-//		 System.out.println("Enter your port number");
-//		 int PortNumber = sc.nextInt();
-		 int PortNumber = 5624;
-		 
-		 System.out.println("Enter your name");
-		 String name = sc.next();
-		 
-//		 AllPeers peers = new AllPeers(PortNumber);
-		 cs = new CommonServer(PortNumber);
-		 cs.start();
-		 ConnectionHandling();
-	
-	}
+        try {
+            socket = new Socket(serverIpAddress, port);
+            if (socket.isConnected()) {
+                System.out.println("Connected to: " + serverIpAddress);
+            }
+
+            // Setup input and output streams
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+
+            // Start a thread to handle incoming messages
+            new Thread(() -> {
+                try {
+                    String message;
+                    while ((message = in.readLine()) != null) {
+                        System.out.println("Server: " + message);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            while (true) {
+                String messageToSend = consoleInput.readLine();
+                if (messageToSend.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                out.println(messageToSend);
+            }
+
+            socket.close();
+            System.out.println("Connection closed");
+
+        } catch (IOException e) {
+            System.err.println("Error connecting to server.");
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Enter your name");
+        String name = sc.next();
+
+        System.out.println("Enter your port");
+        int serverPort = sc.nextInt();
+
+//        System.out.println("Are you starting the server? (yes/no)");
+//        String answer = sc.next();
+//        if (answer.equalsIgnoreCase("yes")) {
+            CommonServer cs = new CommonServer(serverPort);
+            cs.start();
+//        }
+
+//        System.out.println("Connecting as client...");
+        connectionHandling();
+    }
 }

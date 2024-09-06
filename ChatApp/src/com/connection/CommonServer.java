@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-//import java.net.UnknownHostException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +30,7 @@ public class CommonServer {
 
     public void start() {
         new Thread(() -> {
-//            while (true) {
+            while (true) {
                 try {
                     // Accept a new client connection
                     Socket clientSocket = server.accept();
@@ -40,21 +40,18 @@ public class CommonServer {
                         allClients.add(clientSocket);
                     }
                     
+              
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     
-                    Thread SendMessage = new Thread(()-> clientWriters.put(clientSocket, out));
-                    SendMessage.start();
-                    Thread ReceiveMessage = new Thread(() -> handleClientMessages(clientSocket, in));
-                    ReceiveMessage.start();
-                    
-                    SendMessage.join();
-                    ReceiveMessage.join();
-                    
-                } catch (IOException | InterruptedException e) {
+                    clientWriters.put(clientSocket, out);
+
+                    new Thread(() -> handleClientMessages(clientSocket, in)).start();
+
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-//            }
+            }
         }).start();
     }
 
