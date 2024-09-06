@@ -1,19 +1,14 @@
 package com.connection;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class CommonServer {
-    
+
     private ServerSocket server;
     private static final List<Socket> allClients = new ArrayList<>();
     private static final ConcurrentMap<Socket, PrintWriter> clientWriters = new ConcurrentHashMap<>();
@@ -22,27 +17,25 @@ public class CommonServer {
         try {
             server = new ServerSocket(port, 50, InetAddress.getLocalHost());
             System.out.println("Server started on port: " + port);
-            start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void start() {
-        Thread request = new Thread(() -> {
+        new Thread(() -> {
             while (true) {
-                try(// Accept a new client connection
-                    Socket clientSocket = this.server.accept()
-                		) {
-                	System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+                try {
+                    Socket clientSocket = server.accept();
+                    System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+
                     synchronized (allClients) {
                         allClients.add(clientSocket);
                     }
-                    
-              
+
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    
+
                     clientWriters.put(clientSocket, out);
 
                     new Thread(() -> handleClientMessages(clientSocket, in)).start();
@@ -51,8 +44,7 @@ public class CommonServer {
                     e.printStackTrace();
                 }
             }
-        });
-        request.start();
+        }).start();
     }
 
     private void handleClientMessages(Socket clientSocket, BufferedReader in) {
@@ -64,8 +56,8 @@ public class CommonServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
-        	removeClient(clientSocket);
+        } finally {
+            removeClient(clientSocket);
         }
     }
 

@@ -23,18 +23,25 @@ public class AllPeers {
             // Setup input and output streams
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
 
-            while(true){
-            	String MsgReceived = consoleInput.readLine();
-            	if(MsgReceived == null){
-            	break;
-            	}
-            	 
-            	out.println(MsgReceived);
-            	String MsgSend = in.readLine();
-            	System.out.println("Server: "+MsgSend);
-            	}
+            // Start a thread to read incoming messages
+            new Thread(() -> {
+                try {
+                    String message;
+                    while ((message = in.readLine()) != null) {
+                        System.out.println("Server: " + message);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Read user input and send messages
+            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+            String MsgSend;
+            while ((MsgSend = consoleInput.readLine()) != null) {
+                out.println(MsgSend);
+            }
 
             socket.close();
             System.out.println("Connection closed");
@@ -52,7 +59,6 @@ public class AllPeers {
         String name = sc.next();
 
         int serverPort = 5678;
-
         CommonServer cs = new CommonServer(serverPort);
         cs.start();
 
