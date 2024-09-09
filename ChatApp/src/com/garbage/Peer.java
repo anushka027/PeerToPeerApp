@@ -42,9 +42,18 @@ public class Peer {
         int myPort = sc.nextInt();
         System.out.println("Enter your name:");
         String name = sc.next();
+        
+//        //-------------------------------------------------------------------------
+//        System.out.println("What you want to do\n1. Enter an IP to start messaging \n2. Connected clients ");
 
+        System.out.println("Connected clients:");
+        for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {
+            Client client = entry.getValue();
+            System.out.println("Name: " + client.getName() + ", IP: " + client.getSocket().getInetAddress().getHostAddress());
+        }
+        
         // Start listening for incoming connections
-        new Thread(() -> startServer(myPort)).start();
+        new Thread(() -> startServer(myPort,name)).start();
 
         // Connect to another peer
         System.out.println("Do you want to connect to a peer:\nY = Yes\nN = No");
@@ -62,11 +71,7 @@ public class Peer {
                 System.out.println("Not an IP");
             }
         } else if (reply.equalsIgnoreCase("N")) {
-            System.out.println("Connected clients:");
-            for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {
-                Client client = entry.getValue();
-                System.out.println("Name: " + client.getName() + ", IP: " + client.getSocket().getInetAddress().getHostAddress());
-            }
+           
         }
 
         // Handle user input and send messages
@@ -99,7 +104,7 @@ public class Peer {
         }
     }
 
-    private static void startServer(int myPort) {
+    private static void startServer(int myPort, String name) {
         try (ServerSocket serverSocket = new ServerSocket(myPort)) {
             System.out.println("Listening for incoming connections on port " + myPort);
 
@@ -108,14 +113,14 @@ public class Peer {
                 System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
 
                 // Start a new thread to handle messages from this client
-                new Thread(() -> handleClientMessages(clientSocket)).start();
+                new Thread(() -> handleClientMessages(clientSocket,name)).start();
             }
         } catch (IOException e) {
             System.out.println("Start server disconnected");
         }
     }
 
-    private static void handleClientMessages(Socket clientSocket) {
+    private static void handleClientMessages(Socket clientSocket, String name) {
         try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
             String message;
             // Read the client's name first
@@ -127,7 +132,7 @@ public class Peer {
 
             // Continue to read messages from this client
             while ((message = clientIn.readLine()) != null) {
-                System.out.println("Peer: " + message);
+                System.out.println(name+" : " + message);
             }
         } catch (IOException e) {
             System.out.println("handleClientMessages Disconnected");
@@ -169,7 +174,7 @@ public class Peer {
                 try {
                     String message;
                     while ((message = in.readLine()) != null) {
-                        System.out.println("Peer: " + message);
+                        System.out.println(message);
                     }
                 } catch (IOException e) {
                     System.out.println("connectToPeer Thread Disconnected");

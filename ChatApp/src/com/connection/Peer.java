@@ -125,7 +125,7 @@ public class Peer {
 
             // Continue to read messages from this client
             while ((message = clientIn.readLine()) != null) {
-                System.out.println("Peer: " + message);
+                System.out.println(message);
             }
         } catch (IOException e) {
             System.out.println("handleClientMessages Disconnected");
