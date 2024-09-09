@@ -1,4 +1,4 @@
-package com.connection;
+package com.garbage;
 
 import java.io.*;
 import java.net.*;
@@ -38,8 +38,8 @@ public class Peer {
         InetAddress peerIp;
         Scanner sc = new Scanner(System.in);
 
-       
-        int myPort = 5684;
+        System.out.println("Enter your Port:");
+        int myPort = sc.nextInt();
         System.out.println("Enter your name:");
         String name = sc.next();
 
@@ -51,11 +51,13 @@ public class Peer {
         String reply = sc.next();
 
         if (reply.equalsIgnoreCase("Y")) {
+            System.out.println("Enter the Port of the peer to connect to:");
+            int peerPort = sc.nextInt();
             System.out.println("Enter the IP address of the peer to connect to:");
             String getIP = sc.next();
             try {
                 peerIp = InetAddress.getByName(getIP);
-                connectToPeer(peerIp, myPort, name);
+                connectToPeer(peerIp, peerPort, name);
             } catch (UnknownHostException e) {
                 System.out.println("Not an IP");
             }
