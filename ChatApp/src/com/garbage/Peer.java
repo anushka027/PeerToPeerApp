@@ -65,19 +65,17 @@ public class Peer {
 		                }
 				}
 				else {
-              
-					System.out.println("Enter the IP you want to send this message to");
-					String getIP = sc.next();
-					InetAddress peerIp = InetAddress.getByName(getIP);
+					InetAddress peerIp = InetAddress.getByName(message);
 		            connectToPeer(peerIp, myPort, name);
 					while(true) {
 						message = consoleInput.readLine();
-						if(message!="exit")
-							out.println(name + " : " + message);
-						else
-						{
+						if(message.equalsIgnoreCase("exit")) {
 							out.println(name +" left the chat");
 							break;
+						}
+						else
+						{
+							out.println(name + " : " + message);
 						}
 					}
 				}

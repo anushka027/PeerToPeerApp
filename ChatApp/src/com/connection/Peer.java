@@ -71,17 +71,18 @@ public class Peer {
                         selectClientFromList(); // Use JLine to select IP
                     }
                 } else {
-                	while(message != "exit") {
-                    System.out.println("Enter the IP you want to send this message to");
-                    String getIP = sc.next();
-                    try {
-                        InetAddress peerIp = InetAddress.getByName(getIP);
-                        connectToPeer(peerIp, myPort, name);
-                        out.println(name + " : " + message);
-                    } catch (UnknownHostException e) {
-                        System.out.println("Invalid IP");
-                        continue;
-                    }}
+                	InetAddress peerIp = InetAddress.getByName(message);
+		            connectToPeer(peerIp, myPort, name);
+					while(true) {
+						message = consoleInput.readLine();
+						if(message.equalsIgnoreCase("exit")) {
+							out.println(name +" left the chat");
+							break;
+						}
+						else
+						{
+							out.println(name + " : " + message);
+						}					}
                 }
             } catch (IOException e) {
                 System.out.println("Main: Peer disconnected the connection");
