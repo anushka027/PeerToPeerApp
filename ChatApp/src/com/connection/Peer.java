@@ -56,7 +56,7 @@ public class Peer {
 					 if (allClients.isEmpty()) {
 		                    System.out.println("No clients are currently connected.");
 		                } else {
-		                    sendClientList(out);
+		                    sendClientList();
 		                }
 				}
 				else {
@@ -101,14 +101,14 @@ public class Peer {
             if ((getName = clientIn.readLine()) != null) {
                 Client newClient = new Client(clientSocket.getInetAddress().getHostAddress(), getName);
                 allClients.put(clientSocket, newClient);
-                broadcastClientList();  // Notify all clients about the new connection
+//                broadcastClientList();  // Notify all clients about the new connection
             }
 
             // Continue to read messages from this client
             String message;
             while ((message = clientIn.readLine()) != null) {
                 if (message.equals("LIST")) {
-                    sendClientList(new PrintWriter(clientSocket.getOutputStream(), true));
+                    sendClientList();
                 } else {
                     System.out.println(message);
                 }
@@ -128,24 +128,24 @@ public class Peer {
             System.out.println("Error closing client socket.");
         }
         System.out.println("Client disconnected: " + clientSocket.getInetAddress().getHostAddress());
-        broadcastClientList(); // Notify all clients about the disconnection
+//        broadcastClientList(); // Notify all clients about the disconnection
     }
 
-    private static void broadcastClientList() {
-        for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {
-            Socket socket = entry.getKey();
-            try {
-                PrintWriter clientOut = new PrintWriter(socket.getOutputStream(), true);
-                sendClientList(clientOut);
-            } catch (IOException e) {
-                System.out.println("Error broadcasting client list to " + entry.getValue().getIpAddress());
-            }
-        }
-    }
+//    private static void broadcastClientList() {
+//        for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {
+//            Socket socket = entry.getKey();
+//            try {
+//                PrintWriter clientOut = new PrintWriter(socket.getOutputStream(), true);
+//                sendClientList(clientOut);
+//            } catch (IOException e) {
+//                System.out.println("Error broadcasting client list to " + entry.getValue().getIpAddress());
+//            }
+//        }
+//    }
 
-    private static void sendClientList(PrintWriter clientOut) {
+    private static void sendClientList() {
         for (Client client : allClients.values()) {
-            clientOut.println("IP: " + client.getIpAddress() + ", Name: " + client.getName());
+            System.out.println("IP: " + client.getIpAddress() + ", Name: " + client.getName());
         }
     }
 
@@ -168,7 +168,7 @@ public class Peer {
                 try {
                     String message;
                     while ((message = in.readLine()) != null) {
-                        System.out.println("Peer: " + message);
+                        System.out.println(message);
                     }
                 } catch (IOException e) {
                     System.out.println("connectToPeer Thread Disconnected");
