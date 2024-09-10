@@ -42,9 +42,6 @@ public class Peer {
         int myPort = sc.nextInt();
         System.out.println("Enter your name:");
         String name = sc.next();
-        
-//        //-------------------------------------------------------------------------
-//        System.out.println("What you want to do\n1. Enter an IP to start messaging \n2. Connected clients ");
 
         System.out.println("Connected clients:");
         for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {

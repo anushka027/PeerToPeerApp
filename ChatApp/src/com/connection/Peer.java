@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 class Client {
     private Socket socket;
     private String name;
@@ -42,6 +43,12 @@ public class Peer {
         int myPort = 5684;
         System.out.println("Enter your name:");
         String name = sc.next();
+        
+        System.out.println("Connected clients:");
+        for (Map.Entry<Socket, Client> entry : allClients.entrySet()) {
+            Client client = entry.getValue();
+            System.out.println("Name: " + client.getName() + ", IP: " + client.getSocket().getInetAddress().getHostAddress());
+        }
 
         // Start listening for incoming connections
         new Thread(() -> startServer(myPort)).start();
