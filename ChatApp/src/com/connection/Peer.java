@@ -134,7 +134,7 @@ public class Peer {
                         String selectedIp = ipList.get(cursor);
                         System.out.println("Selected IP: " + selectedIp);
                         connectToPeer(InetAddress.getByName(selectedIp), 5684, "YourName"); // Adjust port and name as needed
-                        return; // Exit after selection
+                        break; // Exit after selection
                 }
             }
         } catch (IOException e) {
