@@ -2,7 +2,10 @@ package com.garbage;
 
 import java.io.*;
 import java.net.*;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +38,7 @@ public class Peer {
     private static PrintWriter out;
     private static BufferedReader in;
 
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         int myPort = 5684;
 
@@ -57,6 +60,7 @@ public class Peer {
             executorService.submit(() -> {
                 try {
                     InetAddress address = InetAddress.getByName(host);
+                    if(!reachableIPs.containsKey(address)) {
                     if (address.isReachable(TIMEOUT)) {
                         try (Socket socket = new Socket(address, myPort)) {
                             reachableIPs.put(host, name); // Use host (IP as String) as key
@@ -65,8 +69,9 @@ public class Peer {
                             // Port is not open
                         }
                     }
+                    }
                 } catch (IOException e) {
-                    // Handle unknown host or unreachable address
+                    System.out.println("Unknown host");
                 }
             });
         }
@@ -75,10 +80,14 @@ public class Peer {
     }
 
     public static void printListOfUsers() {
+    	
         System.out.println("Reachable IPs on the network:");
-        for (String ip : reachableIPs.keySet()) {
-            System.out.println(ip + " : " + reachableIPs.get(ip));
-        }
+        Set s2 = reachableIPs.entrySet();
+		Iterator itr3 = s2.iterator();
+		while(itr3.hasNext()) {
+			Map.Entry o1 = (java.util.Map.Entry) itr3.next();
+			System.out.println(o1.getKey()+" : "+o1.getValue());
+		}
     }
 
     private static void MsgToPeer(int myPort, String name) {
@@ -134,11 +143,10 @@ public class Peer {
     private static void handleClientMessages(Socket clientSocket) {
         try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
             String clientName;
-            if ((clientName = clientIn.readLine()) != null) {
-                String clientIp = clientSocket.getInetAddress().getHostAddress();
-                reachableIPs.put(clientIp, clientName);
-                System.out.println("Client connected: " + clientName);
-            }
+            clientName = clientIn.readLine();
+            String clientIp = clientSocket.getInetAddress().getHostAddress();
+                
+            getAllUser(clientName, 5684);
 
             String message;
             while ((message = clientIn.readLine()) != null) {
@@ -150,8 +158,6 @@ public class Peer {
             }
         } catch (IOException e) {
             System.out.println("handleClientMessages: Client disconnected unexpectedly: " + e.getMessage());
-        } finally {
-            removeClient(clientSocket);
         }
     }
 
