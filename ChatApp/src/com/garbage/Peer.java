@@ -34,17 +34,19 @@ class Client {
 
 public class Peer {
     // Map to store reachable IPs and their corresponding names
-	private static final ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
     private static Socket socket;
     private static PrintWriter out;
     private static BufferedReader in;
+    private static String name;
+    private static int myPort;
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        int myPort = 5684; // Port to listen on
+        myPort = 5684; // Port to listen on
 
         System.out.println("Enter your name:");
-        String name = sc.next();
+        name = sc.next();
 
         getAllUser(name, myPort);
         
@@ -57,6 +59,7 @@ public class Peer {
 
     // Discover all users on the network
     public static void getAllUser(String name, int myPort) {
+        reachableIPs = new ConcurrentHashMap<>();
         // Discover reachable users on the network
        
         String subnet = "192.168.1."; // Subnet for the local network
@@ -104,6 +107,7 @@ public class Peer {
             Map.Entry<String, String> entry = iterator.next();
 //            System.out.println(i+ " - "+entry.getKey() + " : " + entry.getValue());
             System.out.println(i+ " - "+entry.getKey());
+            i++;
         }
     }
 
@@ -118,6 +122,7 @@ public class Peer {
             try {
                 message = consoleInput.readLine();
                 if (message.equalsIgnoreCase("List")) {
+                    getAllUser(name, myPort);
                     if (reachableIPs.isEmpty()) {
                         System.out.println("No clients are currently connected.");
                     } else {
