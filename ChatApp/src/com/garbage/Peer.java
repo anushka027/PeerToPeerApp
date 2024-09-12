@@ -59,7 +59,7 @@ public class Peer {
         // Discover reachable users on the network
         int TIMEOUT = 100; // Timeout for reachability check
         String subnet = "192.168.1."; // Subnet for the local network
-        ExecutorService executorService = Executors.newFixedThreadPool(200); // Thread pool for network discovery
+        ExecutorService executorService = Executors.newFixedThreadPool(20); // Thread pool for network discovery
 
         // Iterate over possible IP addresses in the subnet
         for (int i = 1; i < 255; i++) {
@@ -67,14 +67,14 @@ public class Peer {
             executorService.submit(() -> {
                 try {
                     InetAddress address = InetAddress.getByName(host);
-                    if (address.isReachable(TIMEOUT)) {
+                    try (Socket socket = new Socket(address, 5684)) { 
                         if (!reachableIPs.containsKey(host)) {
                             reachableIPs.put(host, name);
                             System.out.println("Found reachable IP: " + host);
                         }
                     }
                 } catch (IOException e) {
-                    System.err.println("Error checking reachability of " + host + ": " + e.getMessage());
+//                    System.out.println("Error checking reachability of " + host + ": " + e.getMessage());
                 }
             });
         }
