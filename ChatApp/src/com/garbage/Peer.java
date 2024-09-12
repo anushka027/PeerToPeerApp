@@ -159,12 +159,7 @@ public class Peer {
     // Handle incoming messages from a client
     private static void handleClientMessages(Socket clientSocket) {
         try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
-//            String clientName;
-//            clientName = clientIn.readLine(); // Read client's name
-//            String clientIp = clientSocket.getInetAddress().getHostAddress();
-//                
-//            
-//            getAllUser(clientName, 5684);
+           
 
             String message;
             while ((message = clientIn.readLine()) != null) {
@@ -200,10 +195,14 @@ public class Peer {
             System.out.println("Connected to peer: " + socket.getInetAddress().getHostAddress());
 
             out = new PrintWriter(socket.getOutputStream(), true);
-            out.println(name); // Send the name first
+          
             out.println(name + " has connected!");
 
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String clientName;
+            clientName = in.readLine(); // Read client's name
+            
+            getAllUser(clientName, 5684);
 
             new Thread(() -> {
                 try {
