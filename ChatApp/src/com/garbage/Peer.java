@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,7 +34,7 @@ class Client {
 
 public class Peer {
     // Map to store reachable IPs and their corresponding names
-    private static final ConcurrentSkipListMap<String, String> reachableIPs = new ConcurrentSkipListMap<>();
+	private static final ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
     private static Socket socket;
     private static PrintWriter out;
     private static BufferedReader in;
@@ -56,18 +56,18 @@ public class Peer {
 
     // Discover all users on the network
     public static void getAllUser(String name, int myPort) {
-        // Discover reachable users on the network
-        int TIMEOUT = 100; // Timeout for reachability check
+        // Discover reachable users on the network'
+       
         String subnet = "192.168.1."; // Subnet for the local network
-        ExecutorService executorService = Executors.newFixedThreadPool(20); // Thread pool for network discovery
-
+        ExecutorService executorService = Executors.newCachedThreadPool(); // Thread pool for network discovery
         // Iterate over possible IP addresses in the subnet
         for (int i = 1; i < 255; i++) {
             final String host = subnet + i;
             executorService.submit(() -> {
                 try {
                     InetAddress address = InetAddress.getByName(host);
-                    try (Socket socket = new Socket(address, 5684)) { 
+//                    System.out.println("Loop");
+                 if(isPortOpen(address)) {
                         if (!reachableIPs.containsKey(host)) {
                             reachableIPs.put(host, name);
                             System.out.println("Found reachable IP: " + host);
@@ -80,12 +80,15 @@ public class Peer {
         }
 
         executorService.shutdown(); // Shutdown executor service when done
-        try {
-            if (!executorService.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
+      
+    }
+    
+    public static boolean isPortOpen(InetAddress ipAddress) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(ipAddress, 5684), 1000); // 1-second timeout
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 
