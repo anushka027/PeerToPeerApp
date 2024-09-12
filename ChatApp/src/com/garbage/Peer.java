@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 class Client {
     private String ipAddress;
@@ -41,7 +42,7 @@ public class Peer {
     private static String name;
     private static int myPort;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnknownHostException {
         Scanner sc = new Scanner(System.in);
         myPort = 5684; // Port to listen on
 
@@ -72,14 +73,14 @@ public class Peer {
                     InetAddress address = InetAddress.getByName(host);
 //                    System.out.println("Loop");
                  if(isPortOpen(address)) {
-//                        if (!reachableIPs.containsKey(host)) 
+                        if ((!reachableIPs.containsKey(host)))
                         {
+                        	if(!host.equals(InetAddress.getLocalHost().getHostAddress())) 
                             reachableIPs.put(host, name);
-                            System.out.println("Found reachable IP: " + host);
                         }
                     }
                 } catch (IOException e) {
-//                    System.out.println("Error checking reachability of " + host + ": " + e.getMessage());
+                    System.out.println("Error checking reachability of " + host + ": " + e.getMessage());
                 }
             });
         }
@@ -98,10 +99,14 @@ public class Peer {
     }
 
     // Print list of reachable users
-    public static void printListOfUsers() {
+    public static void printListOfUsers() throws UnknownHostException {
     	int i =1;
+    	
         System.out.println("Reachable IPs on the network:");
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
+//        Set<Map.Entry<String, String>> filteredEntries = entries.stream()
+//        	    .filter(entry -> !entry.getValue().equals(currentIp))
+//        	    .collect(Collectors.toSet());
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
         while(iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
@@ -116,7 +121,7 @@ public class Peer {
         Scanner sc = new Scanner(System.in);
         String message;
         BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Enter the IP to connect to a client or type List to get the IP of all connected clients");
+        System.out.println("INPUT\nLIST : To get list of online user.\nIP : To directly connect to a user.");
 
         while (true) {
             try {
@@ -128,7 +133,7 @@ public class Peer {
                     } else {
                         printListOfUsers();
                         
-                        System.out.println("Choose a user from the list");
+                        System.out.println("-----------Choose a user from the list------------");
                     }
                 } else if(Integer.parseInt(message)>=1 && Integer.parseInt(message)<=reachableIPs.size()) {
                 	
@@ -160,7 +165,7 @@ public class Peer {
                     }
                 }
             } catch (IOException e) {
-                System.out.println("Main: Peer disconnected the connection");
+                System.out.println("Connection is disconnected");
             }
         }
     }
@@ -168,19 +173,17 @@ public class Peer {
     // Start server to listen for incoming connections
     private static void startServer(int myPort) {
         try (ServerSocket serverSocket = new ServerSocket(myPort)) {
-            System.out.println("Listening for incoming connections on port " + myPort);
-
+           
             while (true) {
                 Socket clientSocket = serverSocket.accept();
 
                 String clientIp = clientSocket.getInetAddress().getHostAddress();
-                System.out.println("New client connected: " + clientIp);
                 
                 // Use thread pool to handle client connections
                 new Thread(() -> handleClientMessages(clientSocket)).start();
             }
         } catch (IOException e) {
-            System.out.println("Start server disconnected: " + e.getMessage());
+            System.out.println("-------------This account is already in use-------------");
         }
     }
 
@@ -197,26 +200,10 @@ public class Peer {
                 }
             }
         } catch (IOException e) {
-            System.out.println("handleClientMessages: Client disconnected unexpectedly: " + e.getMessage());
+//            System.out.println("handleClientMessages: Client disconnected unexpectedly: " + e.getMessage());
         }
     }
-    
 
-
-    // Remove client from reachable IPs when they disconnect
-    private static void removeClient(Socket clientSocket) {
-        String clientIp = clientSocket.getInetAddress().getHostAddress();
-        if (reachableIPs.containsKey(clientIp)) {
-            reachableIPs.remove(clientIp);
-            System.out.println("Client disconnected: " + clientIp);
-        }
-        try {
-            clientSocket.close();
-        } catch (IOException e) {
-            System.out.println("Error closing client socket: " + e.getMessage());
-        }
-    }
-    
     // Connect to a peer and start communication
     private static void connectToPeer(InetAddress peerIp, int peerPort, String name) {
         try {
@@ -242,7 +229,7 @@ public class Peer {
                         System.out.println(message);
                     }
                 } catch (IOException e) {
-                    System.out.println("connectToPeer Thread Disconnected: " + e.getMessage());
+//                    System.out.println("connectToPeer Thread Disconnected: " + e.getMessage());
                 }
             }).start();
 
