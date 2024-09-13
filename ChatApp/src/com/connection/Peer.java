@@ -196,6 +196,7 @@ public class Peer {
         	 }
         	 else {
         		 System.out.println("You left the broadcast");
+        		 out.println(name+ "left the chat");
         		 break;
         	 }
          }
