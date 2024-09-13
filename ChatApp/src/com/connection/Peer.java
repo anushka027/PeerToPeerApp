@@ -35,8 +35,6 @@ class Client {
 public class Peer {
     // Map to store reachable IPs and their corresponding names
 	private static ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, Socket> peerSockets = new ConcurrentHashMap<>();
-
     private static Socket socket;
     private static PrintWriter out;
     private static BufferedReader in;
@@ -172,42 +170,44 @@ public class Peer {
         }
     }
    
-   
-        public static void broadcast() {
-
-            System.out.println("Broadcast chat");
-            Scanner sc = new Scanner(System.in);
-            String message;
-            
-            getAllUser(name, myPort);
-
-            if (reachableIPs.isEmpty()) {
-                System.out.println("No users connected");
-                return;
-            }
-
-            while (true) {
-                message = sc.nextLine();
-                if (message.equalsIgnoreCase("exit")) {
-                    System.out.println("You left the broadcast");
-                    break;
-                }
-
-                for (Map.Entry<String, String> entry : reachableIPs.entrySet()) {
-                    String ip = entry.getKey();
-                    Socket peerSocket = peerSockets.get(ip);
-
-                    if (peerSocket != null && !peerSocket.isClosed()) {
-                        try {
-                            PrintWriter peerOut = new PrintWriter(peerSocket.getOutputStream(), true);
-                            peerOut.println(name + " (broadcast): " + message);
-                        } catch (IOException e) {
-                            System.out.println("Failed to send message to " + ip + ": " + e.getMessage());
-                        }
-                    }
-                }
-            }
-        }
+    public static void broadcast() {
+    	System.out.println("Broadcast chat");
+    	Scanner sc = new Scanner(System.in);
+    	getAllUser(name, myPort);
+    	
+         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
+         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
+         
+         if(reachableIPs.isEmpty()) {
+        	 System.out.println("No users connected");
+         }
+        	 
+         else {
+        	 while(true) {
+            	 String message = sc.next();
+            	 while(iterator.hasNext()) {
+            		 Map.Entry<String, String> entry = iterator.next();
+            				 if(!message.equalsIgnoreCase("exit")) {
+            					 try {
+            						 Socket socket = new Socket();
+            						 SocketAddress socketAddress = new InetSocketAddress(entry.getKey(), myPort);
+            						 
+            						 socket.connect(socketAddress, 1000);
+            						 out.print(name+ " : " +message);
+            						 socket.close();				
+            						 } catch (IOException e) {
+            							 System.out.println("No");
+            							 }
+            					 }
+            		 }
+            	 if(message.equalsIgnoreCase("exit")) {
+					 System.out.println("You left the broadcast");
+					 out.println(name+ "left the chat");
+					 break;
+					 }
+            	 }
+        	 }
+         }
 
     // Start server to listen for incoming connections
     private static void startServer(int myPort) {
@@ -247,6 +247,8 @@ public class Peer {
     private static void connectToPeer(InetAddress peerIp, int peerPort, String name) {
         try {
             socket = new Socket(peerIp, peerPort);
+            
+            System.out.println("Connected to "+name);
 
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
