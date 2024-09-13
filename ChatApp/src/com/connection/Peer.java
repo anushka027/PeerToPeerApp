@@ -171,43 +171,43 @@ public class Peer {
     }
    
     public static void broadcast() {
-    	System.out.println("Broadcast chat");
-    	Scanner sc = new Scanner(System.in);
-    	getAllUser(name, myPort);
-    	
-         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
-         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
-         
-         if(reachableIPs.isEmpty()) {
-        	 System.out.println("No users connected");
-         }
-        	 
-         else {
-        	 while(true) {
-            	 String message = sc.next();
-            	 while(iterator.hasNext()) {
-            		 Map.Entry<String, String> entry = iterator.next();
-            				 if(!message.equalsIgnoreCase("exit")) {
-            					 try {
-            						 Socket socket = new Socket();
-            						 SocketAddress socketAddress = new InetSocketAddress(entry.getKey(), myPort);
-            						 
-            						 socket.connect(socketAddress, 1000);
-            						 out.print(name+ " : " +message);
-            						 socket.close();				
-            						 } catch (IOException e) {
-            							 System.out.println("No");
-            							 }
-            					 }
-            		 }
-            	 if(message.equalsIgnoreCase("exit")) {
-					 System.out.println("You left the broadcast");
-					 out.println(name+ "left the chat");
-					 break;
-					 }
-            	 }
-        	 }
-         }
+        System.out.println("Broadcast chat");
+        Scanner sc = new Scanner(System.in);
+        getAllUser(name, myPort);
+
+        Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
+        Iterator<Map.Entry<String, String>> iterator = entries.iterator();
+
+        if (reachableIPs.isEmpty()) {
+            System.out.println("No users connected");
+        } else {
+            while (true) {
+                System.out.println("Enter message (or 'exit' to stop): ");
+                String message = sc.nextLine();
+                for (Map.Entry<String, String> entry : entries) {
+                    String ip = entry.getKey();
+                    String userName = entry.getValue();
+                    try {
+                    	 if (message.equalsIgnoreCase("exit")) {
+                             System.out.println("You left the broadcast");
+                             out.println(name + " left the chat");
+                             return;
+                         }
+                    	 else {
+                        Socket socket = new Socket();
+                        SocketAddress socketAddress = new InetSocketAddress(ip, myPort);
+                        socket.connect(socketAddress, 1000); // 1-second timeout
+                        out = new PrintWriter(socket.getOutputStream(), true);
+                        out.println(name + " : " + message);
+                        socket.close();
+                    	 }
+                    } catch (IOException e) {
+                        System.out.println("Failed to send message to " + userName + " (" + ip + "): " + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
 
     // Start server to listen for incoming connections
     private static void startServer(int myPort) {
@@ -248,7 +248,7 @@ public class Peer {
         try {
             socket = new Socket(peerIp, peerPort);
             
-            System.out.println("Connected to "+name);
+            System.out.println("Connected");
 
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
