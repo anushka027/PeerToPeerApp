@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 class Client {
     private String ipAddress;
@@ -39,7 +38,7 @@ public class Peer {
     private static Socket socket;
     private static PrintWriter out;
     private static BufferedReader in;
-//    private static String name;
+    private static String name;
     private static int myPort;
 
     public static void main(String[] args) throws UnknownHostException {
@@ -47,7 +46,7 @@ public class Peer {
         myPort = 5684; // Port to listen on
 
         System.out.println("Enter your name:");
-        String name = sc.next();
+        name = sc.next();
 
         getAllUser(name, myPort);
         
@@ -111,8 +110,8 @@ public class Peer {
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
         while(iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
-            System.out.println(i+ " - "+entry.getKey() + " : " + entry.getValue());
-//            System.out.println(i+ " - "+entry.getKey());
+//            System.out.println(i+ " - "+entry.getKey() + " : " + entry.getValue());
+            System.out.println(i+ " - "+entry.getKey());
             i++;
         }
     }
@@ -122,7 +121,8 @@ public class Peer {
         Scanner sc = new Scanner(System.in);
         String message;
         BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("INPUT\nLIST : To get list of online user.\nIP : To directly connect to a user.");
+        System.out.println("\nLIST : To get list of online user.\nBROADCAST : Send message to all the user"
+        		+ "\nENTER IP : To directly connect to a user.");
 
         while (true) {
             try {
@@ -136,7 +136,11 @@ public class Peer {
                         printListOfUsers();
                         System.out.println("-----------Choose a user from the list------------");
                     }
-                } else {
+                }else if(message.equalsIgnoreCase("Broadcast")) {
+                	broadcast();
+                }
+                
+                else {
                     try {
                         int choice = Integer.parseInt(message);
                         if (choice >= 1 && choice <= reachableIPs.size()) {
@@ -146,6 +150,7 @@ public class Peer {
                             while (true) {
                                 message = consoleInput.readLine();
                                 if (message.equalsIgnoreCase("exit")) {
+                                	System.out.println("You left the chat");
                                     out.println(name + " left the chat");
                                     break;
                                 } else {
@@ -163,6 +168,38 @@ public class Peer {
                 System.out.println("Connection is disconnected");
             }
         }
+    }
+   
+    public static void broadcast() {
+    	System.out.println("Broadcast chat");
+    	Scanner sc = new Scanner(System.in);
+    	getAllUser(name, myPort);
+    	
+         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
+         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
+         
+         if(reachableIPs.isEmpty()) {
+        	 System.out.println("No users connected");
+         }
+        	 
+         else {
+         while(iterator.hasNext()) {
+        	 String message = sc.next();
+        	 if(!message.equalsIgnoreCase("exit")) {
+             Map.Entry<String, String> entry = iterator.next();
+             try {
+				connectToPeer(InetAddress.getByName(entry.getKey()), myPort, name);
+				out.print(name+ " : " +message);
+			} catch (UnknownHostException e) {
+//				e.printStackTrace();
+			}
+        	 }
+        	 else {
+        		 System.out.println("You left the broadcast");
+        		 break;
+        	 }
+         }
+         }
     }
 
     // Start server to listen for incoming connections
