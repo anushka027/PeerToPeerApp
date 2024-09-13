@@ -10,28 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-class Client {
-    private String ipAddress;
-    private String name;
-
-    public Client(String ipAddress, String name) {
-        this.ipAddress = ipAddress;
-        this.name = name;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-}
-
 public class Peer {
     // Map to store reachable IPs and their corresponding names
 	private static ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
@@ -48,20 +26,14 @@ public class Peer {
         System.out.println("Enter your name:");
         name = sc.next();
 
-        getAllUser(name, myPort);
-        
-        // Start server to accept incoming connections
-        new Thread(() -> startServer(myPort)).start();
- 
-        // Handle sending messages to peers
-        MsgToPeer(myPort, name);
+        getAllUser(name, myPort); // Fetch IPs of all online users
+        new Thread(() -> startServer(myPort)).start(); // Start server to accept incoming connections
+        MsgToPeer(myPort, name); // Handle sending messages to peers
     }
 
     // Discover all users on the network
     public static void getAllUser(String name, int myPort) {
         reachableIPs = new ConcurrentHashMap<>();
-        // Discover reachable users on the network
-       
         String subnet = "192.168.1."; // Subnet for the local network
         ExecutorService executorService = Executors.newCachedThreadPool(); // Thread pool for network discovery
         // Iterate over possible IP addresses in the subnet
@@ -70,7 +42,6 @@ public class Peer {
             executorService.submit(() -> {
                 try {
                     InetAddress address = InetAddress.getByName(host);
-//                    System.out.println("Loop");
                  if(isPortOpen(address)) {
                         if ((!reachableIPs.containsKey(host)))
                         {
@@ -80,12 +51,8 @@ public class Peer {
                     }
                 } catch (IOException e) {
                     System.out.println("Error checking reachability of " + host + ": " + e.getMessage());
-                }
-            });
-        }
-
+                }});}
         executorService.shutdown(); // Shutdown executor service when done
-      
     }
     
     //Check the IPs present in the port
@@ -99,14 +66,10 @@ public class Peer {
     }
 
     // Print list of reachable users
-    public static void printListOfUsers() throws UnknownHostException {
+    public static void printListOfUsers() {
     	int i =1;
-    	
         System.out.println("Reachable IPs on the network:");
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
-//        Set<Map.Entry<String, String>> filteredEntries = entries.stream()
-//        	    .filter(entry -> !entry.getValue().equals(currentIp))
-//        	    .collect(Collectors.toSet());
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
         while(iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
@@ -121,26 +84,29 @@ public class Peer {
         Scanner sc = new Scanner(System.in);
         String message;
         BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("\nLIST : To get list of online user.\nBROADCAST : Send message to all the user"
-        		+ "\nENTER IP : To directly connect to a user.");
+        //Options to start communication
+        System.out.println("\n--------LIST : To get list of online user.\n--------BROADCAST : Send message to all the user"
+        		+ "\n--------ENTER IP : To directly connect to a user.");
 
         while (true) {
             try {
                 message = consoleInput.readLine();
-                
+                //Display connected users
                 if (message.equalsIgnoreCase("List")) {
                     getAllUser(name, myPort);
                     if (reachableIPs.isEmpty()) {
-                        System.out.println("No clients are currently connected.");
+                        System.out.println("--------No clients are currently connected--------");
                     } else {
                         printListOfUsers();
                         System.out.println("-----------Choose a user from the list------------");
                     }
+                    //broadcast msg to all Peers
                 }else if(message.equalsIgnoreCase("Broadcast")) {
                 	broadcast();
                 }
-                
+                //
                 else {
+                	//Display result on IP or index of List
                     try {
                         int choice = Integer.parseInt(message);
                         if (choice >= 1 && choice <= reachableIPs.size()) {
@@ -150,7 +116,7 @@ public class Peer {
                             while (true) {
                                 message = consoleInput.readLine();
                                 if (message.equalsIgnoreCase("exit")) {
-                                	System.out.println("You left the chat");
+                                	System.out.println("----------You left the chat-----------");
                                     out.println(name + " left the chat");
                                     break;
                                 } else {
@@ -158,22 +124,22 @@ public class Peer {
                                 }
                             }
                         } else {
-                            System.out.println("Invalid choice. Please enter a number from the list");
+                            System.out.println("********Invalid choice. Please enter a number from the list********");
                         }
                     } catch (NumberFormatException e) {
-                        System.out.println("Invalid input. Please enter a number.");
+                        System.out.println("***********Invalid input. Please enter a number.***********");
                     }
                 }
             } catch (IOException e) {
-                System.out.println("Connection is disconnected");
+                System.out.println("***********Connection is disconnected***********");
             }
         }
     }
-   
+   //Broadcast msg to all the connected Peers
     public static void broadcast() {
-        System.out.println("Broadcast chat");
+        System.out.println("-----------Broadcast chat-----------");
         Scanner sc = new Scanner(System.in);
-        getAllUser(name, myPort);
+        getAllUser(name, myPort); //Update the current user map
 
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
@@ -181,16 +147,17 @@ public class Peer {
         if (reachableIPs.isEmpty()) {
             System.out.println("No users connected");
         } else {
+        	//Message loop for broadcast chats
             while (true) {
-                System.out.println("Enter message (or 'exit' to stop): ");
+                System.out.println("-------------Enter message ['exit' to stop]-------------");
                 String message = sc.nextLine();
                 for (Map.Entry<String, String> entry : entries) {
                     String ip = entry.getKey();
                     String userName = entry.getValue();
                     try {
                     	 if (message.equalsIgnoreCase("exit")) {
-                             System.out.println("You left the broadcast");
-                             out.println(name + " left the chat");
+                             System.out.println("-------------You left the broadcast-------------");
+                             out.println("-------------"+name + " left the chat-------------");
                              return;
                          }
                     	 else {
@@ -202,7 +169,7 @@ public class Peer {
                         socket.close();
                     	 }
                     } catch (IOException e) {
-                        System.out.println("Failed to send message to " + userName + " (" + ip + "): " + e.getMessage());
+                        System.out.println("-------Failed to send message to " + userName + " (" + ip + "): " + e.getMessage()+"--------");
                     }
                 }
             }
@@ -211,25 +178,20 @@ public class Peer {
 
     // Start server to listen for incoming connections
     private static void startServer(int myPort) {
-        try (ServerSocket serverSocket = new ServerSocket(myPort)) {
-           
+        try (ServerSocket serverSocket = new ServerSocket(myPort)){ //Establish connection
             while (true) {
-                Socket clientSocket = serverSocket.accept();
-
-                String clientIp = clientSocket.getInetAddress().getHostAddress();
-                
+                Socket clientSocket = serverSocket.accept(); //Accepting connection request                
                 // Use thread pool to handle client connections
                 new Thread(() -> handleClientMessages(clientSocket)).start();
             }
         } catch (IOException e) {
-            System.out.println("-------------This account is already in use-------------");
+            System.out.println("-----------------This account is already in use-----------------");
         }
     }
 
-//     Handle incoming messages from a client
+//     Handle incoming messages from a Peer
     private static void handleClientMessages(Socket clientSocket) {
         try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
-           
             String message;
             while ((message = clientIn.readLine()) != null) {
                 if (message.equalsIgnoreCase("LIST")) {
