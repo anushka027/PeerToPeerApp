@@ -101,8 +101,7 @@ public class Peer {
                         System.out.println("-------- No clients are currently connected ---------");
                     } else {
                         printListOfUsers();
-                        System.out.println("------------ Choose a user from the list ------------");
-
+                        System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
                     }
                     //broadcast msg to all Peers
                 }else if(message.equalsIgnoreCase("Broadcast")) {
