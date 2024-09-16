@@ -53,7 +53,7 @@ public class Peer {
                                 reachableIPs.put(host, peerName);
                             }
                         } catch (IOException e) {
-//                            System.out.println("Error querying peer at " + host + ": " + e.getMessage());
+                            System.out.println("Error querying peer at " + host + ": " + e.getMessage());
                         }
                     }
                 } catch (IOException e) {
@@ -86,8 +86,7 @@ public class Peer {
             i++;
         }
     }
-
-    // Handle messaging to peers
+// Handle messaging to peers
     private static void MsgToPeer(int myPort, String name) {
         Scanner sc = new Scanner(System.in);
         String message;
@@ -142,8 +141,7 @@ public class Peer {
             }
         }
     }
-
-    // Broadcast message to all the connected peers
+// Broadcast message to all the connected peers
     public static void broadcast() {
         System.out.println("----------------- BROADCAST STARTED -----------------");
         Scanner sc = new Scanner(System.in);
@@ -201,18 +199,17 @@ public class Peer {
 
             String message;
             while ((message = clientIn.readLine()) != null) {
-//                if ("NAME_REQUEST".equals(message)) {
-//                    clientOut.println(name); // Respond with your name
-//                } else {
+                if ("NAME_REQUEST".equals(message)) {
+                    clientOut.println(name); // Respond with your name
+                } else {
                     System.out.println(message);
-//                }
+                }
             }
         } catch (IOException e) {
-            System.out.println("Client disconnected unexpectedly: " + e.getMessage());
+//            System.out.println("Client disconnected unexpectedly: " + e.getMessage());
         }
     }
-
-    // Connect to a peer and start communication
+// Connect to a peer and start communication
     private static void connectToPeer(InetAddress peerIp, int peerPort, String name) {
         try {
             socket = new Socket(peerIp, peerPort);
@@ -228,7 +225,7 @@ public class Peer {
                         System.out.println(message);
                     }
                 } catch (IOException e) {
-                    System.out.println("Connection to peer lost: " + e.getMessage());
+//                    System.out.println("Connection to peer lost: " + e.getMessage());
                 }
             }).start();
 
