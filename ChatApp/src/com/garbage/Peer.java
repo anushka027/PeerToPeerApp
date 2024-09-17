@@ -77,7 +77,7 @@ public class Peer {
     // Print list of reachable users
     public static void printListOfUsers() {
         int i = 1;
-        System.out.println("\nReachable IPs on the network:");
+        System.out.println("\n------------------- ONLINE USERS --------------------");
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
         while (iterator.hasNext()) {
@@ -89,8 +89,8 @@ public class Peer {
     
     private static void GuideMsg() {
     	 System.out.println("*****************************************************");
-         System.out.println("********* LIST : To get list of online users ********");
-         System.out.println("***** BROADCAST : Send message to all the users *****");
+         System.out.println("************** 1. List of online user ***************");
+         System.out.println("************** 2. Broadcast a message ***************");
          System.out.println("*****************************************************");	
     }
 // Handle messaging to peers
@@ -103,47 +103,63 @@ public class Peer {
        
         while (true) {
             try {
-                message = consoleInput.readLine();
-                if (message.equalsIgnoreCase("List")) {
-                    getAllUser(name, myPort);
-                    if (reachableIPs.isEmpty()) {
-                        System.out.println("-------- No clients are currently connected ---------\n");
-                    } else {
-                        printListOfUsers();
-                        System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
-                    }
-                } else if (message.equalsIgnoreCase("Broadcast")) {
-                    broadcast();
-                    GuideMsg();
-                } else {
-                    try {
-                        int choice = Integer.parseInt(message);
-                        if (choice >= 1 && choice <= reachableIPs.size()) {
-                            Map.Entry<String, String>[] entries = reachableIPs.entrySet().toArray(new Map.Entry[0]);
-                            String ipAddressString = entries[choice - 1].getKey();
-                            connectToPeer(InetAddress.getByName(ipAddressString), myPort, name);
-                            System.out.println("---- CONNECTED TO "+entries[choice-1].getValue().toUpperCase()+" ----");
-                            System.out.println("-------- Enter message or '/exit' to go back --------");
-                            while (true) {
-                            	System.out.print(name+" : ");
-                                message = consoleInput.readLine();
-                                if (message.equalsIgnoreCase("/exit")) {
-                                    System.out.println("\n----------------- YOU LEFT THE CHAT -----------------\n");
-                                    out.println("\n**** " + name + " left the chat ****\n");
-                                    break;
-                                } else {
-                                    out.println(name + " : " + message);
+                while (true) {
+                    int choice = sc.nextInt();
+                    switch (choice) {
+                        case 1: {
+                            getAllUser(name, myPort);
+                            if (reachableIPs.isEmpty()) {
+                                System.out.println("-------- No clients are currently connected ---------\n");
+                            } else {
+                                printListOfUsers();
+                                System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
+                                int userPosition = sc.nextInt();
+                                if (userPosition >= 1 && userPosition <= reachableIPs.size()) {
+                                    Map.Entry<String, String>[] entries = reachableIPs.entrySet().toArray(new Map.Entry[0]);
+                                    String ipAddressString = entries[choice - 1].getKey();
+                                    connectToPeer(InetAddress.getByName(ipAddressString), myPort, name);
+                                    System.out.println("---- CONNECTED TO " + entries[choice - 1].getValue().toUpperCase() + " ----");
+                                    System.out.println("-------- Enter message or '/exit' to go back --------");
+                                    while (true) {
+                                        String prompt = name + " : Enter message";
+                                        System.out.print(prompt);
+                                        int promptLength = prompt.length();
+
+                                        // Move the cursor to the beginning line
+                                        System.out.print("\r");
+                                        message = consoleInput.readLine();
+
+                                        // Move the cursor up to the line with the prompt
+                                        System.out.print("\033[F");
+                                        // Clear the line by overwriting with spaces
+                                        System.out.print("\r" + " ".repeat(promptLength) + "\r");
+                                        System.out.println(name + " : " + message);
+
+                                        if (message.equalsIgnoreCase("/exit")) {
+                                            System.out.println("----------------- You left the chat -----------------\n");
+                                            out.println("**** " + name + " left the chat ****\n");
+                                            break;
+                                        } else {
+                                            out.println(name + " : " + message);
+                                        }
+                                    }
+                                }
+                                else {
+                                	System.out.println("***** User not present *****\n");
+                                	GuideMsg();
                                 }
                             }
-                            
-                        } else {
-                            System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
                         }
-                        GuideMsg();
-                    } catch (NumberFormatException e) {
-                        System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
-                    }
-                }
+                        ;
+                        break;
+                        case 2: {
+                            broadcast();
+                            GuideMsg();
+                        };
+                        break;
+                        default:
+                           System.out.println("********* INVALID OPTION *********");
+                    }}
             } catch (IOException e) {
                 System.out.println("*****************************************************");
                 System.out.println("************ Connection is disconnected *************");
@@ -163,15 +179,16 @@ public class Peer {
         if (reachableIPs.isEmpty()) {
             System.out.println("xxxxxxxxxxxxxxxx No users connected xxxxxxxxxxxxxxxx");
         } else {
+            System.out.println("-------- Enter message or 'exit' to go back --------");
             while (true) {
-                System.out.println("-------- Enter message or 'exit' to go back --------");
+                System.out.print(name+"(You) : ");
                 String message = sc.nextLine();
                 for (Map.Entry<String, String> entry : entries) {
                     String ip = entry.getKey();
                     String userName = entry.getValue();
                     try {
                         if (message.equalsIgnoreCase("/exit")) {
-                            System.out.println("-------------- You left the broadcast --------------");
+                            System.out.println("-------------- You left the broadcast --------------\n");
                             // Note: The `out` PrintWriter here is for the current connection, not all connections.
                             // Broadcasting should be done in a loop for each connection.
                             // Instead, just stop the loop and exit the broadcast mode.
