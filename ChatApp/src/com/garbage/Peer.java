@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Peer {
+
     // Map to store reachable IPs and their corresponding names
     private static ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
     private static Socket socket;
@@ -36,7 +37,7 @@ public class Peer {
         reachableIPs = new ConcurrentHashMap<>();
         String subnet = "192.168.1."; // Subnet for the local network
         ExecutorService executorService = Executors.newCachedThreadPool(); // Thread pool for network discovery
-        
+
         // Iterate over possible IP addresses in the subnet
         for (int i = 1; i < 255; i++) {
             final String host = subnet + i;
@@ -63,7 +64,7 @@ public class Peer {
         }
         executorService.shutdown(); // Shutdown executor service when done
     }
-    
+
     // Check if the port is open on the given IP address
     public static boolean isPortOpen(InetAddress ipAddress) {
         try (Socket socket = new Socket()) {
@@ -82,26 +83,27 @@ public class Peer {
         Iterator<Map.Entry<String, String>> iterator = entries.iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
-            System.out.println(i+". " + entry.getValue()+" ( " + entry.getKey() + " )"  );
+            System.out.println(i + ". " + entry.getValue() + " ( " + entry.getKey() + " )");
             i++;
         }
     }
-    
+
     private static void GuideMsg() {
-    	 System.out.println("*****************************************************");
-    	 System.out.println("****************** CHOOSE AN OPTION *****************");
-         System.out.println("************** 1. List of online user ***************");
-         System.out.println("************** 2. Broadcast a message ***************");
-         System.out.println("*****************************************************");	
+        System.out.println("*****************************************************");
+        System.out.println("****************** CHOOSE AN OPTION *****************");
+        System.out.println("************** 1. List of online user ***************");
+        System.out.println("************** 2. Broadcast a message ***************");
+        System.out.println("*****************************************************");
     }
 // Handle messaging to peers
+
     private static void MsgToPeer(int myPort, String name) {
         Scanner sc = new Scanner(System.in);
         String message;
         BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
-        
+
         GuideMsg();
-       
+
         while (true) {
             try {
                 while (true) {
@@ -122,18 +124,27 @@ public class Peer {
                                     System.out.println("---- CONNECTED TO " + entries[userPosition - 1].getValue().toUpperCase() + " ----");
                                     System.out.println("-------- Enter message or '/exit' to go back --------");
                                     while (true) {
-                                        String prompt = name + " : Enter message";
-                                        System.out.print(prompt);
-                                        int promptLength = prompt.length();
+                                        // Display the prompt and message text
+                                        String prompt = name + " : ";
+                                        String messagePrompt = "Enter Message";
+                                        System.out.print(prompt + messagePrompt);
+
+                                        // Calculate the length of the prompt to overwrite it later
+                                        int promptLength = (prompt + messagePrompt).length();
 
                                         // Move the cursor to the beginning line
-                                        System.out.print("\r");
+                                        System.out.print("\r"+prompt);
+
+                                        // Read the user input
                                         message = consoleInput.readLine();
 
                                         // Move the cursor up to the line with the prompt
                                         System.out.print("\033[F");
-                                        // Clear the line by overwriting with spaces
+
+                                        // Clear the previous message by overwriting it with spaces
                                         System.out.print("\r" + " ".repeat(promptLength) + "\r");
+
+                                        // Print the user input
                                         System.out.println(name + " : " + message);
 
                                         if (message.equalsIgnoreCase("/exit")) {
@@ -144,10 +155,9 @@ public class Peer {
                                             out.println(name + " : " + message);
                                         }
                                     }
-                                }
-                                else {
-                                	System.out.println("***** User not present *****\n");
-                                	
+                                } else {
+                                    System.out.println("***** User not present *****\n");
+
                                 }
                                 GuideMsg();
                             }
@@ -157,11 +167,13 @@ public class Peer {
                         case "2": {
                             broadcast();
                             GuideMsg();
-                        };
+                        }
+                        ;
                         break;
                         default:
-                           System.out.println("********* INVALID OPTION *********");
-                    }}
+                            System.out.println("********* INVALID OPTION *********");
+                    }
+                }
             } catch (IOException e) {
                 System.out.println("*****************************************************");
                 System.out.println("************ Connection is disconnected *************");
@@ -170,6 +182,7 @@ public class Peer {
         }
     }
 // Broadcast message to all the connected peers
+
     public static void broadcast() {
         System.out.println("---------------- BROADCAST STARTED ------------------\n");
         Scanner sc = new Scanner(System.in);
@@ -183,7 +196,7 @@ public class Peer {
         } else {
             System.out.println("-------- Enter message or '/exit' to go back --------");
             while (true) {
-                System.out.print(name+"(You) : ");
+                System.out.print(name + "(You) : ");
                 String message = sc.nextLine();
                 for (Map.Entry<String, String> entry : entries) {
                     String ip = entry.getKey();
@@ -220,8 +233,7 @@ public class Peer {
 
     // Handle incoming messages from a peer
     private static void handleClientMessages(Socket clientSocket) {
-        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-             PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
+        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
             String message;
             while ((message = clientIn.readLine()) != null) {
@@ -236,6 +248,7 @@ public class Peer {
         }
     }
 // Connect to a peer and start communication
+
     private static void connectToPeer(InetAddress peerIp, int peerPort, String name) {
         try {
             socket = new Socket(peerIp, peerPort);
@@ -256,7 +269,7 @@ public class Peer {
             }).start();
 
         } catch (IOException e) {
-            System.out.println("xxxxxx Failed to connect to peer: " + e.getMessage()+ "xxxxxx");
+            System.out.println("xxxxxx Failed to connect to peer: " + e.getMessage() + "xxxxxx");
         }
     }
 }
