@@ -9,6 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
+import static org.fusesource.jansi.Ansi.*;
+
 public class Peer {
 
     private static ConcurrentHashMap<String, String> reachableIPs = new ConcurrentHashMap<>();
@@ -20,10 +24,12 @@ public class Peer {
     private static boolean isConnected = false; // Flag to track connection status
 
     public static void main(String[] args) throws UnknownHostException {
+        AnsiConsole.systemInstall();
+
         Scanner sc = new Scanner(System.in);
         myPort = 5684; // Port to listen on
 
-        System.out.println("Enter your name:");
+        System.out.println(ansi().fg(Ansi.Color.CYAN).a("ENTER YOUR NAME:").reset());
         name = sc.next();
 
         getAllUser(name, myPort);
@@ -51,11 +57,13 @@ public class Peer {
                                 reachableIPs.put(host, peerName);
                             }
                         } catch (IOException e) {
-                            System.out.println("Error querying peer at " + host + ": " + e.getMessage());
+                            System.out.println(ansi().fg(Ansi.Color.RED).a("Error querying peer at " + host + ": " + e.getMessage()).reset());
+                            System.out.println();
                         }
                     }
                 } catch (IOException e) {
-                    System.out.println("Error checking reachability of " + host + ": " + e.getMessage());
+                    System.out.println(ansi().fg(Ansi.Color.RED).a("Error checking reachability of " + host + ": " + e.getMessage()).reset());
+                    System.out.println();
                 }
             });
         }
@@ -73,23 +81,33 @@ public class Peer {
 
     public static void printListOfUsers() {
         int i = 1;
-        System.out.println("\n------------------- ONLINE USERS --------------------");
-        System.out.println("---------- CHOOSE AN OPTION FROM THE LIST -----------");
+       
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("\n------------------- ONLINE USERS --------------------").reset());
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("---------- CHOOSE AN OPTION FROM THE LIST -----------").reset());
+
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
         for (Map.Entry<String, String> entry : entries) {
-            System.out.println(i + ". " + entry.getValue() + " ( " + entry.getKey() + " )");
+            System.out.println(ansi().fg(Ansi.Color.CYAN).a(i + ". " + entry.getValue() + " ( " + entry.getKey() + " )").reset());
             i++;
         }
     }
 
     private static void GuideMsg() {
-        System.out.println("*****************************************************");
-        System.out.println("****************** CHOOSE AN OPTION *****************");
-        System.out.println("************** 1. List of online user ***************");
-        System.out.println("************** 2. Broadcast a message ***************");
-        System.out.println("*****************************************************");
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("*****************************************************").reset());
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("****************** CHOOSE AN OPTION *****************").reset());
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("************** 1. List of online user ***************").reset());
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("************** 2. Broadcast a message ***************").reset());
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("*****************************************************").reset());
+
     }
 
+//    private static String typeMessage() {
+//    	Scanner sc = new Scanner(System.in);
+//    	String message;
+//    	message = ((sc.nextLine())!=null)?sc.nextLine():("Enter Message");
+//    	return message;
+//    }
+    
     private static void MsgToPeer(int myPort, String name) {
         Scanner sc = new Scanner(System.in);
         String message;
@@ -105,7 +123,7 @@ public class Peer {
                         case "1": {
                             getAllUser(name, myPort);
                             if (reachableIPs.isEmpty()) {
-                                System.out.println("-------- No clients are currently connected ---------\n");
+                                System.out.println(ansi().fg(Ansi.Color.RED).a("-------- No clients are currently connected ---------\n").reset());
                             } else {
                                
 //                                while(true) {
@@ -113,7 +131,7 @@ public class Peer {
                                 String position = sc.nextLine().trim(); 
 
                                 if (position.isEmpty()) { 
-                                    System.out.println("***** Input cannot be empty *****\n");
+                                    System.out.println(ansi().fg(Ansi.Color.RED).a("***** Input cannot be empty *****\n").reset());
                                     GuideMsg();
                                     break;
                                 }
@@ -124,31 +142,32 @@ public class Peer {
                                         Map.Entry<String, String>[] entries = reachableIPs.entrySet().toArray(new Map.Entry[0]);
                                         String ipAddressString = entries[userPosition - 1].getKey();
                                         connectToPeer(InetAddress.getByName(ipAddressString), myPort, name);
-                                        System.out.println("---- CONNECTED TO " + entries[userPosition - 1].getValue().toUpperCase() + " ----");
-                                        System.out.println("-------- Enter message or '/exit' to go back --------");
+                                        System.out.println(ansi().fg(Ansi.Color.GREEN).a("---- CONNECTED TO " + entries[userPosition - 1].getValue().toUpperCase() + " ----").reset());
+                                        System.out.println(ansi().fg(Ansi.Color.GREEN).a("-------- Enter message or '/exit' to go back --------").reset());
                                         while (true) {
                                             String prompt = name + " : ";
-                                            System.out.print(prompt);
+                                            System.out.print(ansi().fg(Ansi.Color.BLUE).a(prompt).reset());
                                             message = consoleInput.readLine();
 
                                             if (message.equalsIgnoreCase("/exit")) {
-                                                System.out.println("----------------- You left the chat -----------------\n");
+                                                System.out.println(ansi().fg(Ansi.Color.GREEN).a("----------------- You left the chat -----------------\n").reset());
                                                 if (isConnected) {
-                                                    out.println("**** " + name + " left the chat ****\n");
+                                                	
+                                                    out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****\n").reset());
                                                 }
                                                 break;
                                             } else if (isConnected) {
-                                                out.println(name + " : " + message);
+                                                out.println(ansi().fg(Ansi.Color.BLUE).a(name).reset() + " : " + message);
                                             } else {
-                                                System.out.println("Cannot send message, not connected.");
+                                                System.out.println(ansi().fg(Ansi.Color.RED).a("Cannot send message, not connected.").reset());
                                                 break;
                                             }
                                         }
                                     } else {
-                                        System.out.println("***** User not present *****\n");
+                                        System.out.println(ansi().fg(Ansi.Color.RED).a("***** User not present *****\n").reset());
                                     }
                                 } catch (NumberFormatException e) {
-                                    System.out.println("***** Invalid input, please enter a number *****\n"); // Handle invalid input
+                                    System.out.println(ansi().fg(Ansi.Color.RED).a("***** Invalid input, please enter a number *****\n").reset()); // Handle invalid input
                                 }
                                 GuideMsg();
                             }
@@ -162,46 +181,46 @@ public class Peer {
                         case "" : GuideMsg(); 
                         break;
                         default:
-                            System.out.println("********* INVALID OPTION *********");
+                            System.out.println(ansi().fg(Ansi.Color.RED).a("********* INVALID OPTION *********").reset());
                     }
                 }
             } catch (IOException e) {
-                System.out.println("*****************************************************");
-                System.out.println("************ Connection is disconnected *************");
-                System.out.println("*****************************************************");
+                System.out.println(ansi().fg(Ansi.Color.RED).a("*****************************************************").reset());
+                System.out.println(ansi().fg(Ansi.Color.RED).a("************ Connection is disconnected *************").reset());
+                System.out.println(ansi().fg(Ansi.Color.RED).a("*****************************************************").reset());
             }
         }
     }
 
     public static void broadcast() {
-        System.out.println("---------------- BROADCAST STARTED ------------------\n");
+        System.out.println(ansi().fg(Ansi.Color.GREEN).a("---------------- BROADCAST STARTED ------------------\n").reset());
         Scanner sc = new Scanner(System.in);
         getAllUser(name, myPort);
 
         Set<Map.Entry<String, String>> entries = reachableIPs.entrySet();
 
         if (reachableIPs.isEmpty()) {
-            System.out.println("xxxxxxxxxxxxxxxx No users connected xxxxxxxxxxxxxxxx\n");
+            System.out.println(ansi().fg(Ansi.Color.RED).a("xxxxxxxxxxxxxxxx No users connected xxxxxxxxxxxxxxxx\n").reset());
         } else {
-            System.out.println("-------- Enter message or '/exit' to go back --------");
+            System.out.println(ansi().fg(Ansi.Color.GREEN).a("-------- Enter message or '/exit' to go back --------").reset());
             while (true) {
-                System.out.print(name + "(You) : ");
+                System.out.print(ansi().fg(Ansi.Color.CYAN).a(name + "(You) : ").reset());
                 String message = sc.nextLine();
                 for (Map.Entry<String, String> entry : entries) {
                     String ip = entry.getKey();
                     String userName = entry.getValue();
                     try {
                         if (message.equalsIgnoreCase("/exit")) {
-                            System.out.println("-------------- You left the broadcast --------------\n");
+                            System.out.println(ansi().fg(Ansi.Color.RED).a("-------------- You left the broadcast --------------\n").reset());
                             return;
                         } else {
                             try (Socket socket = new Socket(ip, myPort)) {
                                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                                out.println(name + " : " + message);
+                                out.println(ansi().fg(Ansi.Color.BLUE).a(name + " : ").reset() + message);
                             }
                         }
                     } catch (IOException e) {
-                        System.out.println("------- Failed to send message to " + userName + " (" + ip + "): " + e.getMessage() + " --------");
+                        System.out.println(ansi().fg(Ansi.Color.RED).a("------- Failed to send message to " + userName + " (" + ip + "): " + e.getMessage() + " --------").reset());
                     }
                 }
             }
@@ -215,7 +234,7 @@ public class Peer {
                 new Thread(() -> handleClientMessages(clientSocket)).start();
             }
         } catch (IOException e) {
-            System.out.println("xxxxxxxxxx This account is already in use xxxxxxxxxx");
+            System.out.println(ansi().fg(Ansi.Color.RED).a("xxxxxxxxxx This account is already in use xxxxxxxxxx").reset());
         }
     }
 
@@ -232,7 +251,7 @@ public class Peer {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Client disconnected unexpectedly: " + e.getMessage());
+            System.out.println(ansi().fg(Ansi.Color.RED).a("Client disconnected unexpectedly: " + e.getMessage()).reset());
         }
     }
 
@@ -243,7 +262,7 @@ public class Peer {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             isConnected = true; // Set connection status to true
 
-            out.println("**** " + name + " has connected ****");
+            out.println(ansi().fg(Ansi.Color.CYAN).a("**** " + name + " has connected ****").reset());
 
             new Thread(() -> {
                 try {
@@ -252,13 +271,13 @@ public class Peer {
                         System.out.println(message);
                     }
                 } catch (IOException e) {
-                    System.out.println("\n***** User Offline *****");
+                    System.out.println(ansi().fg(Ansi.Color.RED).a("\n***** User Offline *****").reset());
                     cleanUp();
                 }
             }).start();
 
         } catch (IOException e) {
-            System.out.println("xxxxxx Failed to connect to peer: " + e.getMessage() + "xxxxxx");
+            System.out.println(ansi().fg(Ansi.Color.RED).a("xxxxxx Failed to connect to peer: " + e.getMessage() + "xxxxxx").reset());
         }
     }
 
@@ -274,7 +293,7 @@ public class Peer {
                 in.close();
             }
         } catch (IOException e) {
-            System.out.println("Error during cleanup: " + e.getMessage());
+//            System.out.println("Error during cleanup: " + e.getMessage());
         } finally {
             socket = null;
             out = null;
