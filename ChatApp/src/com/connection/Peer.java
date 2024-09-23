@@ -93,11 +93,11 @@ public class Peer {
     }
 
     private static void GuideMsg() {
-        System.out.println(ansi().fg(Ansi.Color.GREEN).a("*****************************************************").reset());
-        System.out.println(ansi().fg(Ansi.Color.GREEN).a("****************** CHOOSE AN OPTION *****************").reset());
-        System.out.println(ansi().fg(Ansi.Color.GREEN).a("************** 1. List of online user ***************").reset());
-        System.out.println(ansi().fg(Ansi.Color.GREEN).a("************** 2. Broadcast a message ***************").reset());
-        System.out.println(ansi().fg(Ansi.Color.GREEN).a("*****************************************************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*****************************************************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("****************** CHOOSE AN OPTION *****************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("************** 1. List of online user ***************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("************** 2. Broadcast a message ***************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*****************************************************").reset());
 
     }
 
@@ -124,6 +124,7 @@ public class Peer {
                             getAllUser(name, myPort);
                             if (reachableIPs.isEmpty()) {
                                 System.out.println(ansi().fg(Ansi.Color.RED).a("-------- No clients are currently connected ---------\n").reset());
+                                GuideMsg();
                             } else {
                                
 //                                while(true) {
@@ -150,7 +151,7 @@ public class Peer {
                                             message = consoleInput.readLine();
 
                                             if (message.equalsIgnoreCase("/exit")) {
-                                                System.out.println(ansi().fg(Ansi.Color.GREEN).a("----------------- You left the chat -----------------\n").reset());
+                                                System.out.println(ansi().fg(Ansi.Color.RED).a("----------------- You left the chat -----------------\n").reset());
                                                 if (isConnected) {
                                                 	
                                                     out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****\n").reset());
