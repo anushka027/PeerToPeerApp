@@ -1,3 +1,4 @@
+
 package com.connection;
 
 import java.io.*;
@@ -32,24 +33,27 @@ public class Peer {
         myPort = 5684; // Port to listen on
         System.out.println(ansi().fg(Ansi.Color.CYAN).a("\nENTER YOUR NAME :").reset());
 
-        while (true) {
+//        while (true) {
             try {
                 name = sc.nextLine().trim();
 
                 // Check if the name is valid (only alphabets)
                 if (isValidName(name)) {
                     getAllUser(name, myPort);
-                    break; // Valid name, exit loop
+                     // Valid name, exit loop
                 } else {
                     System.out.println(ansi().fg(Ansi.Color.RED).a("Invalid name. Please enter a valid.").reset());
+                    return;
                 }
             } catch (NoSuchElementException e) {
                 System.out.println(ansi().fg(Ansi.Color.RED).a("Invalid input. Please try again.").reset());
+                return;
                 // Continue to prompt for input
             } catch (Exception e) {
                 System.out.println(ansi().fg(Ansi.Color.RED).a("An unexpected error occurred: " + e.getMessage()).reset());
+                return;
             }
-        }
+//        }
 
         new Thread(() -> startServer(myPort)).start();
         MsgToPeer(myPort, name);
@@ -123,13 +127,6 @@ public class Peer {
         System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*****************************************************").reset());
 
     }
-
-//    private static String typeMessage() {
-//    	Scanner sc = new Scanner(System.in);
-//    	String message;
-//    	message = ((sc.nextLine())!=null)?sc.nextLine():("Enter Message");
-//    	return message;
-//    }
     private static void MsgToPeer(int myPort, String name) {
         Scanner sc = new Scanner(System.in);
         String message;
@@ -140,8 +137,12 @@ public class Peer {
         while (true) {
             try {
                 while (true) {
-                    String choice = sc.nextLine();
+                    String choice = sc.nextLine().trim();
+                    if(choice.equalsIgnoreCase("/exit")) {
+                    	System.exit(0);
+                    }
                     switch (choice) {
+                    
                         case "1": {
                             getAllUser(name, myPort);
                             if (reachableIPs.isEmpty()) {
@@ -159,6 +160,7 @@ public class Peer {
                                     break;
                                 }
 //                                }
+                                
                                 try {
                                     int userPosition = Integer.parseInt(position);
                                     if (userPosition >= 1 && userPosition <= reachableIPs.size()) {
@@ -189,8 +191,11 @@ public class Peer {
                                     } else {
                                         System.out.println(ansi().fg(Ansi.Color.RED).a("***** User not present *****\n").reset());
                                     }
-                                } catch (NoSuchElementException | NumberFormatException e) {
+                                } catch ( NumberFormatException e) {
                                     System.out.println(ansi().fg(Ansi.Color.RED).a("***** Invalid input, please enter a number *****\n").reset()); // Handle invalid input
+                                } catch (NoSuchElementException  e) {
+                                    System.out.println(ansi().fg(Ansi.Color.RED).a("***** Invalid input, please enter a number *****\n").reset()); // Handle invalid input
+                                    return;
                                 }
                                 GuideMsg();
                             }
