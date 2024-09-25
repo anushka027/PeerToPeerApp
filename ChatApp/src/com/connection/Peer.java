@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.fusesource.jansi.Ansi;
@@ -25,6 +24,7 @@ public class Peer {
     private static String name;
     private static int myPort;
     private static boolean isConnected = false; // Flag to track connection status
+    private static InnerThread innerThread; // Class-level variable for InnerThread
 
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
@@ -171,24 +171,21 @@ public class Peer {
                                             System.out.print(ansi().fg(Ansi.Color.BLUE).a(prompt).reset());
                                             message = consoleInput.readLine();
 
-                                            try {
-                                                if (message.equalsIgnoreCase("/exit")) {
-                                                    System.out.println(ansi().fg(Ansi.Color.RED).a("----------------- You left the chat -----------------\n").reset());
-                                                    if (isConnected) {
-
-                                                        out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****\n").reset());
-                                                    }
-                                                    break;
-                                                } else if (isConnected) {
-                                                    out.println(ansi().fg(Ansi.Color.BLUE).a(name).reset() + " : " + message);
-                                                } else {
-                                                    System.out.println(ansi().fg(Ansi.Color.RED).a("Cannot send message, not connected.").reset());
-                                                    break;
-                                                }
-                                            } catch (NullPointerException e2) {
-                                                System.out.println(ansi().fg(Ansi.Color.RED).a("***** Invalid Message *****").reset());
+                                            if (message.equalsIgnoreCase("/exit")) {
+                                                System.out.println(ansi().fg(Ansi.Color.RED).a("--------------- You left the chat ---------------").reset());
+                                                out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****").reset());
+                                                innerThread.stopRunning(); // Stop the inner thread if exiting
+                                                cleanUp(); // Ensure we clean up resources
+                                                break; // Exit the message loop
+                                            } else if (isConnected) {
+                                                out.println(ansi().fg(Ansi.Color.BLUE).a(name).reset() + " : " + message);
+                                            } else {
+                                                System.out.println(ansi().fg(Ansi.Color.RED).a("Cannot send message, not connected.").reset());
+                                                break; // Exit if not connected
                                             }
+
                                         }
+
                                     } else {
                                         System.out.println(ansi().fg(Ansi.Color.RED).a("***** User not present *****\n").reset());
                                     }
@@ -255,7 +252,7 @@ public class Peer {
                                 }
                             }
                         } catch (NoSuchElementException | IOException e) {
-                            System.out.println(ansi().fg(Ansi.Color.RED).a("------- Failed to send message to " + userName + " (" + ip + "): " + e.getMessage() + " --------").reset());
+                            System.out.println(ansi().fg(Ansi.Color.RED).a(userName + "(" + ip + "): " +  "Disconnected").reset());
                         }
                     }
                 } catch (NoSuchElementException e3) {
@@ -273,11 +270,13 @@ public class Peer {
             }
         } catch (NoSuchElementException | IOException e) {
             System.out.println(ansi().fg(Ansi.Color.RED).a("xxxxxxxxxx This account is already in use xxxxxxxxxx").reset());
+            System.exit(0);
         }
     }
 
     private static void handleClientMessages(Socket clientSocket) {
-        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
+        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
+        PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
             String message;
             while ((message = clientIn.readLine()) != null) {
@@ -288,33 +287,30 @@ public class Peer {
                 }
             }
         } catch (NoSuchElementException | IOException e) {
-//            System.out.println(ansi().fg(Ansi.Color.RED).a("Client disconnected unexpectedly: " + e.getMessage()).reset());
+            // System.out.println(ansi().fg(Ansi.Color.RED).a("Client disconnected unexpectedly: " + e.getMessage()).reset());
         }
     }
 
     static class InnerThread extends Thread {
 
+        private volatile boolean isRunning = true; // Flag to control the thread's execution
+
         public void run() {
-            String message;
+            String message = " ";
             try {
-                while ((message = in.readLine()) != null || !Thread.currentThread().isInterrupted()) {
+                while (isRunning && (message = in.readLine()) != null) {
                     System.out.println(message);
-                    if (message.equalsIgnoreCase("/exit")) {
-                        cleanUp();
-                        Thread.currentThread().interrupt();
-                        // The code is using the `break` statement to exit out of a loop or switch
-                        // statement in Java.
-                        // break;
-                    }
                 }
-            } catch (NullPointerException | IOException e) {
-                // System.out.println(ansi().fg(Ansi.Color.RED).a("\n***** User Offline *****").reset());
+            } catch (IOException e) {
+                // Handle exception if needed
             } finally {
-                cleanUp();
-                Thread.currentThread().interrupt();
                 isConnected = false; // Reset connection status
+                cleanUp(); // Ensure cleanup on thread exit
             }
-            System.out.println(ansi().fg(Ansi.Color.RED).a("\n***** User Offline *****").reset());
+        }
+
+        public void stopRunning() {
+            isRunning = false; // Method to stop the thread
         }
     }
 
@@ -327,8 +323,11 @@ public class Peer {
             isConnected = true; // Set connection status to true
             out.println(ansi().fg(Ansi.Color.CYAN).a("**** " + name + " has connected ****").reset());
 
-            InnerThread innerThread = new InnerThread();
-            innerThread.start();
+            // Initialize and start the InnerThread
+            if (innerThread == null || !innerThread.isAlive()) {
+                innerThread = new InnerThread();
+                innerThread.start();
+            }
 
         } catch (NoSuchElementException | IOException e) {
             System.out.println(ansi().fg(Ansi.Color.RED).a("xxxxxx Failed to connect to peer: " + e.getMessage() + "xxxxxx").reset());
