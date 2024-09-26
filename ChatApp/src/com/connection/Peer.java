@@ -122,7 +122,8 @@ public class Peer {
         System.out.println(ansi().fg(Ansi.Color.YELLOW).a("************** 1. List of online user ***************").reset());
         System.out.println(ansi().fg(Ansi.Color.YELLOW).a("************** 2. Broadcast a message ***************").reset());
         System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*****************************************************").reset());
-
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*************** /exit - Close the app ***************").reset());
+        System.out.println(ansi().fg(Ansi.Color.YELLOW).a("*****************************************************").reset());
     }
 
     private static void MsgToPeer(int myPort, String name) {
@@ -171,17 +172,21 @@ public class Peer {
                                             System.out.print(ansi().fg(Ansi.Color.BLUE).a(prompt).reset());
                                             message = consoleInput.readLine();
 
-                                            if (message.equalsIgnoreCase("/exit")) {
-                                                System.out.println(ansi().fg(Ansi.Color.RED).a("--------------- You left the chat ---------------").reset());
-                                                out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****").reset());
-                                                innerThread.stopRunning(); // Stop the inner thread if exiting
-                                                cleanUp(); // Ensure we clean up resources
-                                                break; // Exit the message loop
-                                            } else if (isConnected) {
-                                                out.println(ansi().fg(Ansi.Color.BLUE).a(name).reset() + " : " + message);
-                                            } else {
-                                                System.out.println(ansi().fg(Ansi.Color.RED).a("Cannot send message, not connected.").reset());
-                                                break; // Exit if not connected
+                                            try {
+                                                if (message.equalsIgnoreCase("/exit")) {
+                                                    System.out.println(ansi().fg(Ansi.Color.RED).a("--------------- You left the chat ---------------").reset());
+                                                    out.println(ansi().fg(Ansi.Color.RED).a("**** " + name + " left the chat ****").reset());
+                                                    innerThread.stopRunning(); // Stop the inner thread if exiting
+                                                    cleanUp(); // Ensure we clean up resources
+                                                    break; // Exit the message loop
+                                                } else if (isConnected) {
+                                                    out.println(ansi().fg(Ansi.Color.BLUE).a(name).reset() + " : " + message);
+                                                } else {
+                                                    System.out.println(ansi().fg(Ansi.Color.RED).a("Cannot send message, not connected.").reset());
+                                                    break; // Exit if not connected
+                                                }
+                                            } catch (NullPointerException e) {
+                                                System.out.println(ansi().fg(Ansi.Color.RED).a("***** Invalid Message *****").reset());
                                             }
 
                                         }
@@ -208,12 +213,14 @@ public class Peer {
                             System.out.println(ansi().fg(Ansi.Color.RED).a("******************* INVALID OPTION ******************\n").reset());
                             GuideMsg();
                             break;
-                        default:
+                        default: {
                             System.out.println(ansi().fg(Ansi.Color.RED).a("******************* INVALID OPTION ******************\n").reset());
+                        }
                     }
                 }
             } catch (NoSuchElementException e1) {
                 System.out.println(ansi().fg(Ansi.Color.RED).a("******************* INVALID OPTION ******************\n").reset());
+                GuideMsg();
             } catch (IOException e) {
                 System.out.println(ansi().fg(Ansi.Color.RED).a("*****************************************************").reset());
                 System.out.println(ansi().fg(Ansi.Color.RED).a("************ Connection is disconnected *************").reset());
@@ -251,8 +258,10 @@ public class Peer {
                                     out.println(ansi().fg(Ansi.Color.BLUE).a(name + " : ").reset() + message);
                                 }
                             }
-                        } catch (NoSuchElementException | IOException e) {
-                            System.out.println(ansi().fg(Ansi.Color.RED).a(userName + "(" + ip + "): " +  "Disconnected").reset());
+                        } catch (IOException e) {
+                            System.out.println(ansi().fg(Ansi.Color.RED).a(userName + "(" + ip + "): " + "Disconnected").reset());
+                        } catch (NoSuchElementException | NullPointerException e) {
+                            System.out.println("***** Invalid Message *****");
                         }
                     }
                 } catch (NoSuchElementException e3) {
@@ -275,8 +284,7 @@ public class Peer {
     }
 
     private static void handleClientMessages(Socket clientSocket) {
-        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
-        PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
+        try (BufferedReader clientIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); PrintWriter clientOut = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
             String message;
             while ((message = clientIn.readLine()) != null) {
